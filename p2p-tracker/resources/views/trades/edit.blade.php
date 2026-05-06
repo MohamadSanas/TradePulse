@@ -10,9 +10,11 @@
     </select>
 
     <input name="amount_usdt" value="{{ $trade->amount_usdt }}">
-    <input name="price" value="{{ $trade->price }}">
-    <input name="total_lkr" value="{{ $trade->total_lkr }}">
     <input name="bank_fee" value="{{ $trade->bank_fee }}">
+    <input name="total_lkr" value="{{ $trade->total_lkr }}">
+    <input name="fee" value="{{ $trade->fee }}"> 
+    
+    
 
     <button type="submit">Update</button>
 </form>

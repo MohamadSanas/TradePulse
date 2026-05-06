@@ -9,9 +9,9 @@
     </select>
 
     <input name="amount_usdt" placeholder="USDT">
-    <input name="price" placeholder="Price">
-    <input name="total_lkr" placeholder="Total">
-    <input name="bank_fee" placeholder="Fee">
+    <input name="bank_fee" placeholder="Bank Fee">
+    <input name="total_lkr" placeholder="Total LKR">
+    <input name="fee" placeholder="App Fee">
 
     <button type="submit">Save</button>
 </form>

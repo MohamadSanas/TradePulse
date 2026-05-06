@@ -9,8 +9,10 @@ class TradeController extends Controller
 {
     public function index()
     {
-        $trades = Trade::latest()->get();
-        return view('trades.index', compact('trades'));
+        $buyTrades = Trade::where('type', 'buy')->latest()->get();
+        $sellTrades = Trade::where('type', 'sell')->latest()->get();
+
+        return view('trades.index', compact('buyTrades', 'sellTrades'));
     }
 
     public function create()
@@ -20,11 +22,23 @@ class TradeController extends Controller
 
     public function store(Request $request)
     {
-        $data = $this->validateTrade($request);
-        Trade::create($data);
+        $request->validate([
+            'type' => 'required|in:buy,sell',
+            'amount_usdt' => 'required|numeric',
+            'bank_fee' => 'nullable|numeric',
+            'total_lkr' => 'required|numeric',
+            'fee' => 'nullable|numeric'
+        ]);
 
-        return redirect()->route('trades.index')
-            ->with('success', 'Trade created successfully');
+        Trade::create([
+            'type' => $request->type,
+            'amount_usdt' => $request->amount_usdt,
+            'bank_fee' => $request->bank_fee,
+            'total_lkr' => $request->total_lkr,
+            'fee' => $request->fee
+        ]);
+
+        return redirect('/trades');
     }
 
     public function show($id)
@@ -41,17 +55,32 @@ class TradeController extends Controller
 
     public function update(Request $request, $id)
     {
-        $data = $this->validateTrade($request);
+        $request->validate([
+            'type' => 'required|in:buy,sell',
+            'amount_usdt' => 'required|numeric',
+            'bank_fee' => 'nullable|numeric',
+            'total_lkr' => 'required|numeric',
+            'fee' => 'nullable|numeric'
+        ]);
+
         $trade = Trade::findOrFail($id);
-        $trade->update($data);
-        return redirect()->route('trades.index')
-            ->with('success', 'Trade updated successfully');
+
+        $trade->update([
+            'type' => $request->type,
+            'amount_usdt' => $request->amount_usdt,
+            'bank_fee' => $request->bank_fee,
+            'total_lkr' => $request->total_lkr,
+            'fee' => $request->fee
+        ]);
+
+        return redirect('/trades');
     }
 
     public function destroy($id)
     {
         $trade = Trade::findOrFail($id);
         $trade->delete();
+
         return redirect()->route('trades.index')
             ->with('success', 'Trade deleted successfully');
     }
@@ -61,9 +90,38 @@ class TradeController extends Controller
         return $request->validate([
             'type' => 'required|in:buy,sell',
             'amount_usdt' => 'required|numeric',
-            'bank_fee' => 'required|numeric',
+            'bank_fee' => 'nullable|numeric',
             'total_lkr' => 'required|numeric',
             'fee' => 'nullable|numeric'
         ]);
     }
+
+    private function averagePrice($amount_usdt, $total_lkr)
+    {
+        return $amount_usdt > 0 ? $total_lkr / $amount_usdt : 0;
+    }
+
+    //get sum of all buy trades in data base 
+    private function totalBuys()
+    {
+        return Trade::where('type', 'buy')->sum('amount_usdt');
+    }
+
+    //get total sells in data base 
+    private function totalSells()
+    {
+        return Trade::where('type', 'sell')->sum('amount_usdt');
+    }
+
+    //get total 
+
+    //get average price of sell trades
+    private function averageSellPrice()
+    {
+        $totalSells = $this->totalSells();
+        $totalSellValue = Trade::where('type', 'sell')->sum('total_lkr');
+        return $this->averagePrice($totalSells, $totalSellValue);
+    }
+
+
 }

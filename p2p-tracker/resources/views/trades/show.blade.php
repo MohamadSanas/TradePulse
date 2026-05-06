@@ -4,6 +4,6 @@
 <p>USDT: {{ $trade->amount_usdt }}</p>
 <p>Bank fee: {{ $trade->bank_fee }}</p>
 <p>Total: {{ $trade->total_lkr }}</p>
-<p>Fee: {{ $trade->bank_fee }}</p>
+<p>Fee: {{ $trade->fee }}</p>
 
 <a href="/trades">Back</a>
