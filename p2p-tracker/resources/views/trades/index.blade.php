@@ -12,6 +12,7 @@
         <th>Bank Fee</th>
         <th>Total</th>
         <th>App Fee</th>
+        <th>Actions</th>
     </tr>
 
     @foreach($buyTrades as $trade)
@@ -21,6 +22,14 @@
         <td>{{ $trade->bank_fee }}</td>
         <td>{{ $trade->total_lkr }}</td>
         <td>{{ $trade->fee }}</td>
+        <td><a href="/trades/{{ $trade->id }}">View</a> 
+            <a href="/trades/{{ $trade->id }}/edit">Edit</a> 
+            <form action="/trades/{{ $trade->id }}" method="POST" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+            </form>
+        </td>
     </tr>
     @endforeach
 </table>
@@ -34,6 +43,7 @@
         <th>Bank Fee</th>
         <th>Total</th>
         <th>App Fee</th>
+        <th>Actions</th>
     </tr>
 
     @foreach($sellTrades as $trade)
@@ -43,6 +53,14 @@
         <td>{{ $trade->bank_fee }}</td>
         <td>{{ $trade->total_lkr }}</td>
         <td>{{ $trade->fee }}</td>
+        <td><a href="/trades/{{ $trade->id }}">View</a> 
+            <a href="/trades/{{ $trade->id }}/edit">Edit</a> 
+            <form action="/trades/{{ $trade->id }}" method="POST" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+            </form>
+        </td>
     </tr>
     @endforeach
 </table>
