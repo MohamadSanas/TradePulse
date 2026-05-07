@@ -7,6 +7,65 @@ use Illuminate\Http\Request;
 
 class TradeController extends Controller
 {
+    public function apiIndex()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => Trade::latest()->get()
+        ]);
+    }
+
+
+    public function apiStore(Request $request)
+    {
+        $data = $this->validateTrade($request);
+
+        $trade = Trade::create($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trade created successfully',
+            'data' => $trade
+            ], 201);
+    }
+
+    public function apiShow($id)
+    {
+        $trade = Trade::findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $trade
+        ]);
+    }
+
+
+
+    public function apiUpdate(Request $request, $id)
+    {
+        $data = $this->validateTrade($request);
+
+        $trade = Trade::findOrFail($id);
+        $trade->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trade updated successfully',
+            'data' => $trade
+        ]);
+    }
+
+    public function apiDestroy($id)
+    {
+        $trade = Trade::findOrFail($id);
+        $trade->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Trade deleted successfully'
+        ]);
+    }
+
     public function index()
     {
         $buyTrades = Trade::where('type', 'buy')->latest()->get();
