@@ -13,6 +13,11 @@ class Trade extends Model
         'total_lkr',
         'fee'
     ];
+
+    public function user()
+{
+    return $this->belongsTo(User::class);
+}
 }
 
 
