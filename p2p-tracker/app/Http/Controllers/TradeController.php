@@ -2,21 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Trade;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TradeController extends Controller
 {
-    // =========================
-    // API METHODS
-    // =========================
 
     public function apiIndex()
     {
         return response()->json([
             'success' => true,
-            'data' => Auth::user()
+            'data' => $this->currentUser()
                 ->trades()
                 ->latest()
                 ->get()
@@ -27,7 +24,7 @@ class TradeController extends Controller
     {
         $data = $this->validateTrade($request);
 
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->create($data);
 
@@ -40,7 +37,7 @@ class TradeController extends Controller
 
     public function apiShow($id)
     {
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
 
@@ -54,7 +51,7 @@ class TradeController extends Controller
     {
         $data = $this->validateTrade($request);
 
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
 
@@ -69,7 +66,7 @@ class TradeController extends Controller
 
     public function apiDestroy($id)
     {
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
 
@@ -81,19 +78,16 @@ class TradeController extends Controller
         ]);
     }
 
-    // =========================
-    // WEB CRUD METHODS
-    // =========================
 
     public function index()
     {
-        $buyTrades = Auth::user()
+        $buyTrades = $this->currentUser()
             ->trades()
             ->where('type', 'buy')
             ->latest()
             ->get();
 
-        $sellTrades = Auth::user()
+        $sellTrades = $this->currentUser()
             ->trades()
             ->where('type', 'sell')
             ->latest()
@@ -111,7 +105,7 @@ class TradeController extends Controller
     {
         $data = $this->validateTrade($request);
 
-        Auth::user()
+        $this->currentUser()
             ->trades()
             ->create($data);
 
@@ -120,7 +114,7 @@ class TradeController extends Controller
 
     public function show($id)
     {
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
 
@@ -129,7 +123,7 @@ class TradeController extends Controller
 
     public function edit($id)
     {
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
 
@@ -140,7 +134,7 @@ class TradeController extends Controller
     {
         $data = $this->validateTrade($request);
 
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
 
@@ -151,7 +145,7 @@ class TradeController extends Controller
 
     public function destroy($id)
     {
-        $trade = Auth::user()
+        $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
 
@@ -160,10 +154,6 @@ class TradeController extends Controller
         return redirect()->route('trades.index')
             ->with('success', 'Trade deleted successfully');
     }
-
-    // =========================
-    // VALIDATION
-    // =========================
 
     private function validateTrade(Request $request)
     {
@@ -176,9 +166,17 @@ class TradeController extends Controller
         ]);
     }
 
-    // =========================
-    // CALCULATION METHODS
-    // =========================
+    private function currentUser(): User
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        return $user;
+    }
+
 
     private function averagePrice($amount_usdt, $total_lkr)
     {
@@ -190,7 +188,7 @@ class TradeController extends Controller
     // Total Buy USDT
     private function totalBuys()
     {
-        return Auth::user()
+        return $this->currentUser()
             ->trades()
             ->where('type', 'buy')
             ->sum('amount_usdt');
@@ -199,7 +197,7 @@ class TradeController extends Controller
     // Total Sell USDT
     private function totalSells()
     {
-        return Auth::user()
+        return $this->currentUser()
             ->trades()
             ->where('type', 'sell')
             ->sum('amount_usdt');
@@ -210,7 +208,7 @@ class TradeController extends Controller
     {
         $totalSells = $this->totalSells();
 
-        $totalSellValue = Auth::user()
+        $totalSellValue = $this->currentUser()
             ->trades()
             ->where('type', 'sell')
             ->sum('total_lkr');
