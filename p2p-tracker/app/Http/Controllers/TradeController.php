@@ -133,7 +133,6 @@ class TradeController extends Controller
     public function update(Request $request, $id)
     {
         $data = $this->validateTrade($request);
-
         $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
@@ -173,49 +172,32 @@ class TradeController extends Controller
         if (! $user instanceof User) {
             abort(401);
         }
-
         return $user;
     }
 
-
-    private function averagePrice($amount_usdt, $total_lkr)
+    public function UpdateAverageBuyPrice(Request $request, $id)
     {
-        return $amount_usdt > 0
-            ? $total_lkr / $amount_usdt
-            : 0;
+        $data = $this->validateTrade($request);
+        $trade = $this->currentUser()
+            ->effective_buy_prices()
+            ->findOrFail($id);
+
+        $trade->update($data);
+        return redirect('/UpdateAverageBuyPrice');
+
     }
 
-    // Total Buy USDT
-    private function totalBuys()
+    public function viewUpdateAverageBuyPrice()
     {
-        return $this->currentUser()
-            ->trades()
-            ->where('type', 'buy')
-            ->sum('amount_usdt');
+        $current_status = $this->currentUser()
+            ->effective_buy_prices()
+            ->latest()
+            ->get();
+
+
+        return view('dashboard', compact('current_status'));
     }
 
-    // Total Sell USDT
-    private function totalSells()
-    {
-        return $this->currentUser()
-            ->trades()
-            ->where('type', 'sell')
-            ->sum('amount_usdt');
-    }
 
-    // Average Sell Price
-    private function averageSellPrice()
-    {
-        $totalSells = $this->totalSells();
 
-        $totalSellValue = $this->currentUser()
-            ->trades()
-            ->where('type', 'sell')
-            ->sum('total_lkr');
-
-        return $this->averagePrice(
-            $totalSells,
-            $totalSellValue
-        );
-    }
 }

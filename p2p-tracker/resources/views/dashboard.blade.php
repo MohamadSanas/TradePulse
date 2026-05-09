@@ -5,6 +5,49 @@
         </h2>
     </x-slot>
 
+    {{-- display current average buy price and current average sell price and profit/loss --}}
+
+    <div class="current_status">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <h3 class="text-lg font-semibold">{{ __('Current Status') }}</h3>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        {{ __('Here you can see your current average buy price, average sell price, and profit/loss.') }}
+                    </p>
+
+                    <table class="mt-4 w-full border-collapse border border-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="border border-gray-300 px-4 py-2">Average Buy Price</th>
+                                <th class="border border-gray-300 px-4 py-2">Remaining USDT</th>
+                                <th class="border border-gray-300 px-4 py-2">Remaining LKR</th>
+                                <th class="border border-gray-300 px-4 py-2">Break-even Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($current_status as $status)
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $status->average_buy_price }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $status->remaining_usdt }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $status->remaining_lkr }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $status->break_even_price }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="border border-gray-300 px-4 py-2 text-center">
+                                        No current status records found.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
