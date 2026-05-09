@@ -16,6 +16,12 @@
                         {{ __('Here you can see your current average buy price, average sell price, and profit/loss.') }}
                     </p>
 
+                    @if (session('success'))
+                        <div class="mt-4 rounded bg-green-100 px-4 py-2 text-green-800">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
                     <table class="mt-4 w-full border-collapse border border-gray-200">
                         <thead>
                             <tr>
@@ -42,6 +48,76 @@
                             @endforelse
                         </tbody>
                     </table>
+
+                    <div x-data="{ editing: {{ $errors->any() ? 'true' : 'false' }} }" class="mt-4">
+                        <div x-show="!editing">
+                            <button type="button" x-on:click="editing = true" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                {{ __('Edit Current Status') }}
+                            </button>
+                        </div>
+
+                        <form x-show="editing" method="POST" action="{{ route('trades.updateAverageBuyPrice') }}" class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+                            @csrf
+
+                            <div>
+                                <label for="average_buy_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {{ __('Average Buy Price') }}
+                                </label>
+                                <input id="average_buy_price" name="average_buy_price" type="number" step="0.01" required
+                                    value="{{ old('average_buy_price', $currentStatus?->average_buy_price ?? 0) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @error('average_buy_price')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="remaining_usdt" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {{ __('Remaining USDT') }}
+                                </label>
+                                <input id="remaining_usdt" name="remaining_usdt" type="number" step="0.01" required
+                                    value="{{ old('remaining_usdt', $currentStatus?->remaining_usdt ?? 0) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @error('remaining_usdt')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="remaining_lkr" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {{ __('Remaining LKR') }}
+                                </label>
+                                <input id="remaining_lkr" name="remaining_lkr" type="number" step="0.01" required
+                                    value="{{ old('remaining_lkr', $currentStatus?->remaining_lkr ?? 0) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @error('remaining_lkr')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="break_even_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {{ __('Break-even Price') }}
+                                </label>
+                                <input id="break_even_price" name="break_even_price" type="number" step="0.01" required
+                                    value="{{ old('break_even_price', $currentStatus?->break_even_price ?? 0) }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                @error('break_even_price')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="flex gap-3 md:col-span-4">
+                                <button type="button" x-on:click="editing = false" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                                    {{ __('Cancel') }}
+                                </button>
+
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    {{ __('Save Current Status') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
                 </div>
             </div>

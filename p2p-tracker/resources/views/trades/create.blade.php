@@ -11,7 +11,7 @@
     <input name="amount_usdt" placeholder="USDT">
     <input name="bank_fee" placeholder="Bank Fee">
     <input name="total_lkr" placeholder="Total LKR">
-    <input name="fee" placeholder="App Fee">
+    <input name="fee" placeholder="App Fee (%)">
 
     <button type="submit">Save</button>
 </form>

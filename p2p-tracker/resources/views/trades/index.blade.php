@@ -11,7 +11,7 @@
         <th>USDT</th>
         <th>Bank Fee</th>
         <th>Total</th>
-        <th>App Fee</th>
+        <th>App Fee(%)</th>
         <th>Actions</th>
     </tr>
 
@@ -42,7 +42,7 @@
         <th>USDT</th>
         <th>Bank Fee</th>
         <th>Total</th>
-        <th>App Fee</th>
+        <th>App Fee(%)</th>
         <th>Actions</th>
     </tr>
 

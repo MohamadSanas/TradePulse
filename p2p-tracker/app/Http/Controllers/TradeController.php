@@ -104,10 +104,13 @@ class TradeController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateTrade($request);
+        $user = $this->currentUser();
 
-        $this->currentUser()
+        $trade = $user
             ->trades()
             ->create($data);
+
+        $this->applyTradeToCurrentStatus($user, $trade);
 
         return redirect('/trades');
     }
@@ -175,15 +178,72 @@ class TradeController extends Controller
         return $user;
     }
 
-    public function UpdateAverageBuyPrice(Request $request, $id)
+    private function applyTradeToCurrentStatus(User $user, $trade): void
     {
-        $data = $this->validateTrade($request);
-        $trade = $this->currentUser()
-            ->effective_buy_prices()
-            ->findOrFail($id);
+        $currentStatus = $user->effective_buy_prices()->latest()->first();
 
-        $trade->update($data);
-        return redirect('/UpdateAverageBuyPrice');
+        $remainingUsdt = $currentStatus?->remaining_usdt ?? 0;
+        $remainingLkr = $currentStatus?->remaining_lkr ?? 0;
+        $bankFee = $trade->bank_fee ?? 0;
+        $fee = $trade->fee ?? 0;
+
+        if ($trade->type === 'buy') {
+            $remainingUsdt += $trade->amount_usdt*(100 - $fee)/100;
+            $remainingLkr += $trade->total_lkr + $bankFee + $fee;
+        }
+
+        if ($trade->type === 'sell') {
+            $remainingUsdt -= $trade->amount_usdt*(100 - $fee)/100;
+            $remainingLkr -= $trade->total_lkr - $bankFee - $fee;
+        }
+
+        $averageBuyPrice = $remainingUsdt > 0
+            ? $remainingLkr / $remainingUsdt
+            : 0;
+        
+        $breakEvenPrice = $remainingLkr/($remainingUsdt*(100 - $fee)/100);
+
+        $data = [
+            'average_buy_price' => round($averageBuyPrice, 2),
+            'remaining_usdt' => round($remainingUsdt, 2),
+            'remaining_lkr' => round($remainingLkr, 2),
+            'break_even_price' => round($breakEvenPrice, 2),
+        ];
+
+        if ($currentStatus) {
+            $currentStatus->update($data);
+        } else {
+            $user->effective_buy_prices()->create($data);
+        }
+    }
+
+    public function updateAverageBuyPrice(Request $request)
+    {
+        $user = $this->currentUser();
+
+        $validated = $request->validate([
+            'average_buy_price' => 'required|numeric',
+            'remaining_usdt' => 'required|numeric',
+            'remaining_lkr' => 'required|numeric',
+            'break_even_price' => 'required|numeric',
+        ]);
+
+        $data = [
+            'average_buy_price' => $validated['average_buy_price'],
+            'remaining_usdt' => $validated['remaining_usdt'],
+            'remaining_lkr' => $validated['remaining_lkr'],
+            'break_even_price' => $validated['break_even_price'],
+        ];
+
+        $currentStatus = $user->effective_buy_prices()->latest()->first();
+        if ($currentStatus) {
+            $currentStatus->update($data);
+        } else {
+            $user->effective_buy_prices()->create($data);
+        }
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Current status updated successfully');
 
     }
 
@@ -194,9 +254,54 @@ class TradeController extends Controller
             ->latest()
             ->get();
 
+        $currentStatus = $current_status->first();
 
-        return view('dashboard', compact('current_status'));
+        return view('dashboard', compact('current_status', 'currentStatus'));
     }
+
+    public function apiViewUpdateAverageBuyPrice()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $this->currentUser()
+                ->effective_buy_prices()
+                ->latest()
+                ->get()
+        ]);
+    }
+
+
+    public function apiUpdateAverageBuyPrice(Request $request, $id)
+    {
+        $data = $this->validateTrade($request);
+        $trade = $this->currentUser()
+            ->effective_buy_prices()
+            ->findOrFail($id);
+
+        $trade->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Effective Buy Price updated successfully',
+            'data' => $trade
+        ]);
+    }
+
+    public function apiDestroyEffectiveBuyPrice($id)
+    {
+        $trade = $this->currentUser()
+            ->effective_buy_prices()
+            ->findOrFail($id);
+
+        $trade->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Effective Buy Price deleted successfully'
+        ]);
+    }
+
+
 
 
 

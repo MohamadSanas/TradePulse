@@ -8,10 +8,10 @@ class EffectiveBuyPrice extends Model
 {
     protected $fillable = [
         'user_id',
-        'Average_Buy_Price',
+        'average_buy_price',
         'remaining_usdt',
         'remaining_lkr',
-        'Breakeven_Price',
+        'break_even_price',
     ];
 
     public function user()
@@ -24,8 +24,18 @@ class EffectiveBuyPrice extends Model
         return $this->attributes['Average_Buy_Price'] ?? null;
     }
 
+    public function setAverageBuyPriceAttribute($value)
+    {
+        $this->attributes['Average_Buy_Price'] = $value;
+    }
+
     public function getBreakEvenPriceAttribute()
     {
         return $this->attributes['Breakeven_Price'] ?? null;
+    }
+
+    public function setBreakEvenPriceAttribute($value)
+    {
+        $this->attributes['Breakeven_Price'] = $value;
     }
 }
