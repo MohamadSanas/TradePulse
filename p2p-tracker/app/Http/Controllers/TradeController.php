@@ -130,6 +130,9 @@ class TradeController extends Controller
             ->trades()
             ->findOrFail($id);
 
+        $this->applyDeleteTradeToCurrentStatus($this->currentUser(), $trade);
+        $this->applyTradeToCurrentStatus($this->currentUser(), $trade);
+
         return view('trades.edit', compact('trade'));
     }
 
@@ -139,6 +142,7 @@ class TradeController extends Controller
         $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
+        
 
         $trade->update($data);
 
@@ -150,6 +154,8 @@ class TradeController extends Controller
         $trade = $this->currentUser()
             ->trades()
             ->findOrFail($id);
+
+        $this->applyDeleteTradeToCurrentStatus($this->currentUser(), $trade);
 
         $trade->delete();
 
@@ -181,7 +187,7 @@ class TradeController extends Controller
     private function applyTradeToCurrentStatus(User $user, $trade): void
     {
         $currentStatus = $user->effective_buy_prices()->latest()->first();
-        $feeChardeByApp= $trade-> flooor($trade->amount_usdt * ($trade->fee ?? 0) / 100);
+        $feeChardeByApp = floor($trade->amount_usdt * (($trade->fee ?? 0) / 100));
 
         $remainingUsdt = $currentStatus?->remaining_usdt ?? 0;
         $remainingLkr = $currentStatus?->remaining_lkr ?? 0;
@@ -219,7 +225,7 @@ class TradeController extends Controller
         }
     }
 
-    private function appleDeleteTradeToCurrentStatus(User $user, $trade): void
+    private function applyDeleteTradeToCurrentStatus(User $user, $trade): void
     {
         $currentStatus = $user->effective_buy_prices()->latest()->first();
 
@@ -257,7 +263,7 @@ class TradeController extends Controller
 
     private function applyediteTradeToCurrentStatus(User $user, $oldTrade, $newTrade): void
     {
-        $this->appleDeleteTradeToCurrentStatus($user, $oldTrade);
+        $this->applyDeleteTradeToCurrentStatus($user, $oldTrade);
         $this->applyTradeToCurrentStatus($user, $newTrade);
     }
 
@@ -343,6 +349,28 @@ class TradeController extends Controller
             'success' => true,
             'message' => 'Effective Buy Price deleted successfully'
         ]);
+    }
+
+
+    private function addProfiteToCurrentProfite(User $user, $trade, $effective_buy_prices): void{
+        $currentProfite = $user->currentprofite()->latest()->first();
+
+        $profite = 0;
+
+
+        if ($trade->type === 'sell') {
+            $profite = ($trade->total_lkr) - ($trade->amount_usdt * $effective_buy_prices->Average_Buy_Price);
+        }
+
+        $data = [
+            'profite' => round(($currentProfite?->profite ?? 0) + $profite, 2),
+        ];
+
+        if ($currentProfite) {
+            $currentProfite->update($data);
+        } else {
+            $user->currentprofite()->create($data);
+        }
     }
 
 
