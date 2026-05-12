@@ -181,6 +181,7 @@ class TradeController extends Controller
     private function applyTradeToCurrentStatus(User $user, $trade): void
     {
         $currentStatus = $user->effective_buy_prices()->latest()->first();
+        $feeChardeByApp= $trade-> flooor($trade->amount_usdt * ($trade->fee ?? 0) / 100);
 
         $remainingUsdt = $currentStatus?->remaining_usdt ?? 0;
         $remainingLkr = $currentStatus?->remaining_lkr ?? 0;
@@ -188,20 +189,21 @@ class TradeController extends Controller
         $fee = $trade->fee ?? 0;
 
         if ($trade->type === 'buy') {
-            $remainingUsdt += $trade->amount_usdt*(100 - $fee)/100;
-            $remainingLkr += $trade->total_lkr + $bankFee + $fee;
+
+            $remainingUsdt += $trade->amount_usdt-$feeChardeByApp;
+            $remainingLkr += $trade->total_lkr + $bankFee;
         }
 
         if ($trade->type === 'sell') {
-            $remainingUsdt -= $trade->amount_usdt*(100 - $fee)/100;
-            $remainingLkr -= $trade->total_lkr - $bankFee - $fee;
+            $remainingUsdt -= $trade->amount_usdt;
+            $remainingLkr -= $trade->total_lkr;
         }
 
         $averageBuyPrice = $remainingUsdt > 0
             ? $remainingLkr / $remainingUsdt
             : 0;
-        
-        $breakEvenPrice = $remainingLkr/($remainingUsdt*(100 - $fee)/100);
+        $MaxSekkingFee = floor($remainingUsdt * ($fee / 100));
+        $breakEvenPrice = $remainingLkr/($remainingUsdt-$MaxSekkingFee);
 
         $data = [
             'average_buy_price' => round($averageBuyPrice, 2),
@@ -215,6 +217,48 @@ class TradeController extends Controller
         } else {
             $user->effective_buy_prices()->create($data);
         }
+    }
+
+    private function appleDeleteTradeToCurrentStatus(User $user, $trade): void
+    {
+        $currentStatus = $user->effective_buy_prices()->latest()->first();
+
+        if (! $currentStatus) {
+            return;
+        }
+
+        $remainingUsdt = $currentStatus->remaining_usdt;
+        $remainingLkr = $currentStatus->remaining_lkr;
+        $bankFee = $trade->bank_fee ?? 0;
+        $fee = $trade->fee ?? 0;
+
+        if ($trade->type === 'buy') {
+            $remainingUsdt -= $trade->amount_usdt - floor($trade->amount_usdt * ($fee / 100));
+            $remainingLkr -= $trade->total_lkr + $bankFee;
+        }
+
+        if ($trade->type === 'sell') {
+            $remainingUsdt += $trade->amount_usdt;
+            $remainingLkr += $trade->total_lkr;
+        }
+
+        $averageBuyPrice = $remainingUsdt > 0
+            ? $remainingLkr / $remainingUsdt
+            : 0;
+
+        $data = [
+            'average_buy_price' => round($averageBuyPrice, 2),
+            'remaining_usdt' => round($remainingUsdt, 2),
+            'remaining_lkr' => round($remainingLkr, 2),
+        ];
+
+        $currentStatus->update($data);
+    }
+
+    private function applyediteTradeToCurrentStatus(User $user, $oldTrade, $newTrade): void
+    {
+        $this->appleDeleteTradeToCurrentStatus($user, $oldTrade);
+        $this->applyTradeToCurrentStatus($user, $newTrade);
     }
 
     public function updateAverageBuyPrice(Request $request)
