@@ -111,6 +111,7 @@ class TradeController extends Controller
             ->create($data);
 
         $this->applyTradeToCurrentStatus($user, $trade);
+        $this->addProfiteToCurrentProfite($user, $trade, $user->effective_buy_prices()->latest()->first());
 
         return redirect('/trades');
     }
@@ -299,14 +300,17 @@ class TradeController extends Controller
 
     public function viewUpdateAverageBuyPrice()
     {
-        $current_status = $this->currentUser()
+        $user = $this->currentUser();
+
+        $current_status = $user
             ->effective_buy_prices()
             ->latest()
             ->get();
 
         $currentStatus = $current_status->first();
+        $today_profit = $user->currentprofite()->latest()->value('profite') ?? 0;
 
-        return view('dashboard', compact('current_status', 'currentStatus'));
+        return view('dashboard', compact('current_status', 'currentStatus', 'today_profit'));
     }
 
     public function apiViewUpdateAverageBuyPrice()
@@ -352,14 +356,15 @@ class TradeController extends Controller
     }
 
 
-    private function addProfiteToCurrentProfite(User $user, $trade, $effective_buy_prices): void{
+    private function addProfiteToCurrentProfite(User $user, $trade, $effective_buy_prices): void
+    {
         $currentProfite = $user->currentprofite()->latest()->first();
 
         $profite = 0;
 
 
-        if ($trade->type === 'sell') {
-            $profite = ($trade->total_lkr) - ($trade->amount_usdt * $effective_buy_prices->Average_Buy_Price);
+        if ($trade->type === 'sell' && $effective_buy_prices) {
+            $profite = $trade->total_lkr - ($trade->amount_usdt * $effective_buy_prices->average_buy_price);
         }
 
         $data = [

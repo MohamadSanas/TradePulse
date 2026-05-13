@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Trade;
 use App\Models\EffectiveBuyPrice;
+use App\Models\CurrentProfite;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
@@ -41,6 +42,11 @@ class User extends Authenticatable
     public function effective_buy_prices(): HasMany
     {
         return $this->hasMany(EffectiveBuyPrice::class);
+    }
+
+    public function currentprofite(): HasMany
+    {
+        return $this->hasMany(CurrentProfite::class);
     }
 
     protected static function booted()

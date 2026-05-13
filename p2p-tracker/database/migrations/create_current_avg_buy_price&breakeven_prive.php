@@ -10,11 +10,14 @@ return new class extends Migration
     {
         Schema::create('effective_buy_prices', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->decimal('Average_Buy_Price', 12, 2);
             $table->decimal('remaining_usdt', 12, 2);
             $table->decimal('remaining_lkr', 12, 2);
             $table->decimal('Breakeven_Price', 12, 2);
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

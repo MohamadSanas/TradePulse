@@ -11,9 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('effective_buy_prices')) {
+            return;
+        }
+
         Schema::table('effective_buy_prices', function (Blueprint $table) {
+            if (! Schema::hasColumn('effective_buy_prices', 'user_id')) {
                 $table->unsignedBigInteger('user_id')->nullable()->after('id');
                 $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            }
         });
     }
 
@@ -22,6 +28,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('effective_buy_prices') || ! Schema::hasColumn('effective_buy_prices', 'user_id')) {
+            return;
+        }
+
         Schema::table('effective_buy_prices', function (Blueprint $table) {
             $table->dropForeign('effective_buy_prices_user_id_foreign');
             $table->dropColumn('user_id');
