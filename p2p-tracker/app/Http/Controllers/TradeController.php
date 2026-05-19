@@ -199,21 +199,26 @@ class TradeController extends Controller
 
             $remainingUsdt += $trade->amount_usdt-$feeChardeByApp;
             $remainingLkr += $trade->total_lkr + $bankFee;
+
+            $NewaverageBuyPrice = $remainingUsdt > 0
+            ? $remainingLkr / $remainingUsdt
+            : 0;
         }
 
         if ($trade->type === 'sell') {
+            $average_buy_price = $user->effective_buy_prices()->latest()->value('average_buy_price') ?? 0;
             $remainingUsdt -= $trade->amount_usdt;
-            $remainingLkr -= $trade->total_lkr;
+            $remainingLkr -= $trade->amount_usdt * $average_buy_price;
+            $NewaverageBuyPrice = $average_buy_price;
+
         }
 
-        $averageBuyPrice = $remainingUsdt > 0
-            ? $remainingLkr / $remainingUsdt
-            : 0;
+        
         $MaxSekkingFee = floor($remainingUsdt * ($fee / 100));
         $breakEvenPrice = $remainingLkr/($remainingUsdt-$MaxSekkingFee);
 
         $data = [
-            'average_buy_price' => round($averageBuyPrice, 2),
+            'average_buy_price' => round($NewaverageBuyPrice, 2),
             'remaining_usdt' => round($remainingUsdt, 2),
             'remaining_lkr' => round($remainingLkr, 2),
             'break_even_price' => round($breakEvenPrice, 2),
