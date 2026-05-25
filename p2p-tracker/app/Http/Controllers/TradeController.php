@@ -398,8 +398,43 @@ class TradeController extends Controller
         return $remainingLkr / $sellableUsdt;
     }
 
+    private function setCapitalAmount(Request $request)
+    {
+        $user = $this->currentUser();
 
+        $validated = $request->validate([
+            'capital' => 'required|numeric',
+            'description' => 'nullable|string',
+        ]);
 
+        $data = [
+            'capital' => $validated['capital'],
+            'description' => $validated['description'] ?? null,
+        ];
+
+        $currentCapital = $user->capital_amount()->latest()->first();
+
+        if ($currentCapital) {
+            $currentCapital->update($data);
+        } else {
+            $user->capital_amount()->create($data);
+        }
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Capital amount updated successfully');
+    }
+
+    public function showCapitalAmount()
+    {
+        $user = $this->currentUser();
+
+        $currentCapital = $user
+            ->capital_amount()
+            ->latest()
+            ->get();
+
+        return view('capital_amount', compact('currentCapital'));
+    }
 
 
 }
