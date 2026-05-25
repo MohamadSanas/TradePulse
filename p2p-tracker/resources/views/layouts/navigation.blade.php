@@ -18,6 +18,9 @@
                     <x-nav-link :href="route('trades.index')" :active="request()->routeIs('trades.*')">
                         {{ __('Trades') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('capital-amount.show')" :active="request()->routeIs('capital-amount.*')">
+                        {{ __('Capital') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -75,6 +78,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('trades.index')" :active="request()->routeIs('trades.*')">
                 {{ __('Trades') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('capital-amount.show')" :active="request()->routeIs('capital-amount.*')">
+                {{ __('Capital') }}
             </x-responsive-nav-link>
         </div>
 

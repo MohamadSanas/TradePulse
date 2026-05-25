@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Trade;
 use App\Models\EffectiveBuyPrice;
 use App\Models\CurrentProfite;
+use App\Models\CapitalAmount;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
@@ -47,6 +48,11 @@ class User extends Authenticatable
     public function currentprofite(): HasMany
     {
         return $this->hasMany(CurrentProfite::class);
+    }
+
+    public function capital_amount(): HasMany
+    {
+        return $this->hasMany(CapitalAmount::class);
     }
 
     protected static function booted()

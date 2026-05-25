@@ -318,8 +318,11 @@ class TradeController extends Controller
 
         $currentStatus = $current_status->first();
         $today_profit = $user->currentprofite()->latest()->value('profite') ?? 0;
+        $capitalAmounts = $user->capital_amount()->latest()->get();
+        $currentCapital = $capitalAmounts->first();
+        $totalCapital = $capitalAmounts->sum('capital');
 
-        return view('dashboard', compact('current_status', 'currentStatus', 'today_profit'));
+        return view('dashboard', compact('current_status', 'currentStatus', 'today_profit', 'currentCapital', 'totalCapital'));
     }
 
     public function apiViewUpdateAverageBuyPrice()
@@ -398,13 +401,13 @@ class TradeController extends Controller
         return $remainingLkr / $sellableUsdt;
     }
 
-    private function setCapitalAmount(Request $request)
+    public function setCapitalAmount(Request $request)
     {
         $user = $this->currentUser();
 
         $validated = $request->validate([
-            'capital' => 'required|numeric',
-            'description' => 'nullable|string',
+            'capital' => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         $data = [
@@ -412,15 +415,9 @@ class TradeController extends Controller
             'description' => $validated['description'] ?? null,
         ];
 
-        $currentCapital = $user->capital_amount()->latest()->first();
+        $user->capital_amount()->create($data);
 
-        if ($currentCapital) {
-            $currentCapital->update($data);
-        } else {
-            $user->capital_amount()->create($data);
-        }
-
-        return redirect()->route('dashboard')
+        return redirect()->route('capital-amount.show')
             ->with('success', 'Capital amount updated successfully');
     }
 
@@ -428,12 +425,15 @@ class TradeController extends Controller
     {
         $user = $this->currentUser();
 
-        $currentCapital = $user
+        $capitalAmounts = $user
             ->capital_amount()
             ->latest()
             ->get();
 
-        return view('capital_amount', compact('currentCapital'));
+        $currentCapital = $capitalAmounts->first();
+        $totalCapital = $capitalAmounts->sum('capital');
+
+        return view('CapitalAmount.show', compact('capitalAmounts', 'currentCapital', 'totalCapital'));
     }
 
 

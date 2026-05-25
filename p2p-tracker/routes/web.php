@@ -18,6 +18,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/trades/update-average-buy-price', [TradeController::class, 'updateAverageBuyPrice'])
         ->name('trades.updateAverageBuyPrice');
+    Route::get('/capital-amount', [TradeController::class, 'showCapitalAmount'])
+        ->name('capital-amount.show');
+    Route::post('/capital-amount', [TradeController::class, 'setCapitalAmount'])
+        ->name('capital-amount.set');
 
     Route::resource('trades', TradeController::class);
 });
