@@ -1,12 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\TradeController;
+use App\Http\Controllers\ApiTradeController;
 
 Route::middleware('auth')->group(function () {
-    Route::get('/trades', [TradeController::class, 'apiIndex']);
-    Route::post('/trades', [TradeController::class, 'apiStore']);
-    Route::get('/trades/{id}', [TradeController::class, 'apiShow']);
-    Route::put('/trades/{id}', [TradeController::class, 'apiUpdate']);
-    Route::delete('/trades/{id}', [TradeController::class, 'apiDestroy']);
+    Route::get('/trades', [ApiTradeController::class, 'index']);
+    Route::post('/trades', [ApiTradeController::class, 'store']);
+    Route::get('/trades/{id}', [ApiTradeController::class, 'show']);
+    Route::put('/trades/{id}', [ApiTradeController::class, 'update']);
+    Route::delete('/trades/{id}', [ApiTradeController::class, 'destroy']);
 });
