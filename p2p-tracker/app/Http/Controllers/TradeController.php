@@ -217,13 +217,6 @@ class TradeController extends Controller
         return $user;
     }
 
-    public function apiCurrentUser()
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $this->currentUser()
-        ]);
-    }
 
     private function applyTradeToCurrentStatus(User $user, $trade): void
     {
