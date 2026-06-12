@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\TradeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TradeController extends Controller
 {
+    public function __construct(private TradeService $tradeService)
+    {
+    }
 
     public function index()
     {
@@ -26,29 +30,9 @@ class TradeController extends Controller
         return view('trades.index', compact('buyTrades', 'sellTrades'));
     }
 
-
-    public function apiIndex()
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $this->currentUser()
-                ->trades()
-                ->latest()
-                ->get()
-        ]);
-    }
-
     public function create()
     {
         return view('trades.create');
-    }
-
-    public function apiCreate()
-    {
-        return response()->json([
-            'success' => true,
-            'message' => 'Provide trade details to create a new trade'
-        ]);
     }
 
     public function store(Request $request)
@@ -56,29 +40,17 @@ class TradeController extends Controller
         $data = $this->validateTrade($request);
         $user = $this->currentUser();
 
-        $trade = $user
-            ->trades()
-            ->create($data);
+        $trade = $user->trades()->create($data);
 
-        $this->applyTradeToCurrentStatus($user, $trade);
-        $this->addProfiteToCurrentProfite($user, $trade, $user->effective_buy_prices()->latest()->first());
+        $this->tradeService->applyTradeToCurrentStatus($user, $trade);
+        $this->tradeService->addProfiteToCurrentProfite(
+            $user,
+            $trade,
+            $user->effective_buy_prices()->latest()->first()
+        );
 
-        return redirect('/trades');
-    }
-
-    public function apiStore(Request $request)
-    {
-        $data = $this->validateTrade($request);
-
-        $trade = $this->currentUser()
-            ->trades()
-            ->create($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Trade created successfully',
-            'data' => $trade
-        ], 201);
+        return redirect()->route('trades.index')
+            ->with('success', 'Trade created successfully');
     }
 
     public function show($id)
@@ -90,18 +62,6 @@ class TradeController extends Controller
         return view('trades.show', compact('trade'));
     }
 
-    public function apiShow($id)
-    {
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($id);
-
-        return response()->json([
-            'success' => true,
-            'data' => $trade
-        ]);
-    }
-
     public function edit($id)
     {
         $trade = $this->currentUser()
@@ -111,255 +71,34 @@ class TradeController extends Controller
         return view('trades.edit', compact('trade'));
     }
 
-    public function apiEdit($id)
-    {
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($id);
-
-        return response()->json([
-            'success' => true,
-            'data' => $trade
-        ]);
-    }
-
     public function update(Request $request, $id)
     {
         $data = $this->validateTrade($request);
         $user = $this->currentUser();
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($id);
-
+        $trade = $user->trades()->findOrFail($id);
         $oldTrade = $trade->replicate();
 
         $trade->update($data);
-        $this->applyediteTradeToCurrentStatus($user, $oldTrade, $trade);
+        $this->tradeService->applyEditTradeToCurrentStatus($user, $oldTrade, $trade);
 
-        return redirect('/trades');
-    }
-
-
-    public function apiUpdate(Request $request, $id)
-    {
-        $data = $this->validateTrade($request);
-
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($id);
-
-        $trade->update($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Trade updated successfully',
-            'data' => $trade
-        ]);
+        return redirect()->route('trades.index')
+            ->with('success', 'Trade updated successfully');
     }
 
     public function destroy($id)
     {
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($id);
+        $user = $this->currentUser();
+        $trade = $user->trades()->findOrFail($id);
 
-        $this->applyDeleteTradeToCurrentStatus($this->currentUser(), $trade);
-
+        $this->tradeService->applyDeleteTradeToCurrentStatus($user, $trade);
         $trade->delete();
 
         return redirect()->route('trades.index')
             ->with('success', 'Trade deleted successfully');
     }
 
-    public function apiDestroy($id)
-    {
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($id);
-
-        $trade->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Trade deleted successfully'
-        ]);
-    }
-
-    private function validateTrade(Request $request)
-    {
-        return $request->validate([
-            'type' => 'required|in:buy,sell',
-            'amount_usdt' => 'required|numeric',
-            'bank_fee' => 'nullable|numeric',
-            'total_lkr' => 'required|numeric',
-            'fee' => 'nullable|numeric'
-        ]);
-    }
-
-    public function apiValidateTrade(Request $request)
-    {
-        $validatedData = $this->validateTrade($request);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Trade data is valid',
-            'data' => $validatedData
-        ]);
-    }
-
-    private function currentUser(): User
-    {
-        $user = Auth::user();
-
-        if (! $user instanceof User) {
-            abort(401);
-        }
-        return $user;
-    }
-
-
-    private function applyTradeToCurrentStatus(User $user, $trade): void
-    {
-        $currentStatus = $user->effective_buy_prices()->latest()->first();
-        $feeChardeByApp = floor($trade->amount_usdt * (($trade->fee ?? 0) / 100)*100)/100;
-
-        $remainingUsdt = $currentStatus?->remaining_usdt ?? 0;
-        $remainingLkr = $currentStatus?->remaining_lkr ?? 0;
-        $bankFee = $trade->bank_fee ?? 0;
-        $fee = $trade->fee ?? 0;
-
-        if ($trade->type === 'buy') {
-
-            $remainingUsdt += ($trade->amount_usdt - $feeChardeByApp);
-            $remainingLkr += ($trade->total_lkr + $bankFee);
-
-            $NewaverageBuyPrice = $remainingUsdt > 0
-            ? $remainingLkr / $remainingUsdt
-            : 0;
-        }
-
-        if ($trade->type === 'sell') {
-            $average_buy_price = $user->effective_buy_prices()->latest()->value('Average_Buy_Price') ?? 0;
-            $remainingUsdt -= $trade->amount_usdt;
-            $remainingLkr -= ($trade->amount_usdt * $average_buy_price);
-            $NewaverageBuyPrice = $average_buy_price;
-
-        }
-
-        $MaxSekkingFee = floor($remainingUsdt * ($fee / 100)*100)/100;
-        $breakEvenPrice = $this->calculateBreakEvenPrice($remainingLkr, $remainingUsdt, $MaxSekkingFee);
-
-        $data = [
-            'average_buy_price' => round($NewaverageBuyPrice, 2),
-            'remaining_usdt' => round($remainingUsdt, 2),
-            'remaining_lkr' => round($remainingLkr, 2),
-            'break_even_price' => round($breakEvenPrice, 2),
-        ];
-
-        if ($currentStatus) {
-            $currentStatus->update($data);
-        } else {
-            $user->effective_buy_prices()->create($data);
-        }
-    }
-
-    public function apiApplyTradeToCurrentStatus(Request $request, $tradeId)
-    {
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($tradeId);
-
-        $this->applyTradeToCurrentStatus($this->currentUser(), $trade);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Trade applied to current status successfully'
-        ]);
-    }
-
-    private function applyDeleteTradeToCurrentStatus(User $user, $trade): void
-    {
-        $currentStatus = $user->effective_buy_prices()->latest()->first();
-
-        if (! $currentStatus) {
-            return;
-        }
-
-        $remainingUsdt = $currentStatus->remaining_usdt;
-        $remainingLkr = $currentStatus->remaining_lkr;
-        $bankFee = $trade->bank_fee ?? 0;
-        $fee = $trade->fee ?? 0;
-
-        if ($trade->type === 'buy') {
-            $add_usdt = ($trade->amount_usdt - floor($trade->amount_usdt * ($fee / 100)*100)/100);
-            $add_money = ($trade->total_lkr + $bankFee);
-            $remainingUsdt -= $add_usdt;
-            $remainingLkr -= $add_money;
-        }
-
-        if ($trade->type === 'sell') {
-            $remainingUsdt += $trade->amount_usdt;
-            $remainingLkr += $trade->amount_usdt * $currentStatus->average_buy_price;
-        }
-
-        $averageBuyPrice = $remainingUsdt > 0
-            ? $remainingLkr / $remainingUsdt
-            : 0;
-        $maxSellingFee = floor($remainingUsdt * ($fee / 100)*100)/100;
-        $breakEvenPrice = $this->calculateBreakEvenPrice($remainingLkr, $remainingUsdt, $maxSellingFee);
-
-        $data = [
-            'average_buy_price' => round($averageBuyPrice, 2),
-            'remaining_usdt' => round($remainingUsdt, 2),
-            'remaining_lkr' => round($remainingLkr, 2),
-            'break_even_price' => round($breakEvenPrice, 2),
-        ];
-
-        $currentStatus->update($data);
-    }
-
-    public function apiApplyDeleteTradeToCurrentStatus(Request $request, $tradeId)
-    {
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($tradeId);
-
-        $this->applyDeleteTradeToCurrentStatus($this->currentUser(), $trade);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Trade deletion applied to current status successfully'
-        ]);
-    }
-
-    private function applyediteTradeToCurrentStatus(User $user, $oldTrade, $newTrade): void
-    {
-        $this->applyDeleteTradeToCurrentStatus($user, $oldTrade);
-        $this->applyTradeToCurrentStatus($user, $newTrade);
-    }
-
-    public function apiApplyEditTradeToCurrentStatus(Request $request, $oldTradeId, $newTradeId)
-    {
-        $oldTrade = $this->currentUser()
-            ->trades()
-            ->findOrFail($oldTradeId);
-
-        $newTrade = $this->currentUser()
-            ->trades()
-            ->findOrFail($newTradeId);
-
-        $this->applyediteTradeToCurrentStatus($this->currentUser(), $oldTrade, $newTrade);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Trade edit applied to current status successfully'
-        ]);
-    }
-
     public function updateAverageBuyPrice(Request $request)
     {
-        $user = $this->currentUser();
-
         $validated = $request->validate([
             'average_buy_price' => 'required|numeric',
             'remaining_usdt' => 'required|numeric',
@@ -367,37 +106,11 @@ class TradeController extends Controller
             'break_even_price' => 'required|numeric',
         ]);
 
-        $data = [
-            'average_buy_price' => $validated['average_buy_price'],
-            'remaining_usdt' => $validated['remaining_usdt'],
-            'remaining_lkr' => $validated['remaining_lkr'],
-            'break_even_price' => $validated['break_even_price'],
-        ];
-
-        $currentStatus = $user->effective_buy_prices()->latest()->first();
-        if ($currentStatus) {
-            $currentStatus->update($data);
-        } else {
-            $user->effective_buy_prices()->create($data);
-        }
+        $this->tradeService->saveCurrentStatus($this->currentUser(), $validated);
 
         return redirect()->route('dashboard')
             ->with('success', 'Current status updated successfully');
-
     }
-
-
-    public function apiViewUpdateAverageBuyPrice()
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $this->currentUser()
-                ->effective_buy_prices()
-                ->latest()
-                ->get()
-        ]);
-    }
-    
 
     public function viewUpdateAverageBuyPrice()
     {
@@ -414,160 +127,34 @@ class TradeController extends Controller
         $currentCapital = $capitalAmounts->first();
         $totalCapital = $capitalAmounts->sum('capital');
 
-        return view('dashboard', compact('current_status', 'currentStatus', 'today_profit', 'currentCapital', 'totalCapital'));
-    }
-
-    
-
-
-    public function apiUpdateAverageBuyPrice(Request $request, $id)
-    {
-        $data = $this->validateTrade($request);
-        $trade = $this->currentUser()
-            ->effective_buy_prices()
-            ->findOrFail($id);
-
-        $trade->update($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Effective Buy Price updated successfully',
-            'data' => $trade
-        ]);
-    }
-
-    public function apiDestroyEffectiveBuyPrice($id)
-    {
-        $trade = $this->currentUser()
-            ->effective_buy_prices()
-            ->findOrFail($id);
-
-        $trade->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Effective Buy Price deleted successfully'
-        ]);
-    }
-
-
-    private function addProfiteToCurrentProfite(User $user, $trade, $effective_buy_prices): void
-    {
-        $currentProfite = $user->currentprofite()->latest()->first();
-
-        $profite = 0;
-
-
-        if ($trade->type === 'sell' && $effective_buy_prices) {
-            $profite = $trade->total_lkr - ($trade->amount_usdt * $effective_buy_prices->average_buy_price);
-        }
-
-        $data = [
-            'profite' => round(($currentProfite?->profite ?? 0) + $profite, 2),
-        ];
-
-        if ($currentProfite) {
-            $currentProfite->update($data);
-        } else {
-            $user->currentprofite()->create($data);
-        }
-    }
-
-    public function apiAddProfiteToCurrentProfite(Request $request, $tradeId)
-    {
-        $trade = $this->currentUser()
-            ->trades()
-            ->findOrFail($tradeId);
-
-        $effective_buy_prices = $this->currentUser()
-            ->effective_buy_prices()
-            ->latest()
-            ->first();
-
-        $this->addProfiteToCurrentProfite($this->currentUser(), $trade, $effective_buy_prices);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Profit added to current profit successfully'
-        ]);
-    }
-
-    private function calculateBreakEvenPrice(float $remainingLkr, float $remainingUsdt, float $sellingFee): float
-    {
-        $sellableUsdt = $remainingUsdt - $sellingFee;
-
-        if ($sellableUsdt <= 0) {
-            return 0;
-        }
-
-        return $remainingLkr / $sellableUsdt;
-    }
-
-    public function apiCalculateBreakEvenPrice(Request $request)
-    {
-        $validated = $request->validate([
-            'remaining_lkr' => 'required|numeric',
-            'remaining_usdt' => 'required|numeric',
-            'selling_fee' => 'required|numeric',
-        ]);
-
-        $breakEvenPrice = $this->calculateBreakEvenPrice(
-            $validated['remaining_lkr'],
-            $validated['remaining_usdt'],
-            $validated['selling_fee']
-        );
-
-        return response()->json([
-            'success' => true,
-            'break_even_price' => round($breakEvenPrice, 2)
-        ]);
+        return view('dashboard', compact(
+            'current_status',
+            'currentStatus',
+            'today_profit',
+            'currentCapital',
+            'totalCapital'
+        ));
     }
 
     public function setCapitalAmount(Request $request)
     {
-        $user = $this->currentUser();
-
         $validated = $request->validate([
             'capital' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $data = [
+        $this->tradeService->setCapitalAmount($this->currentUser(), [
             'capital' => $validated['capital'],
             'description' => $validated['description'] ?? null,
-        ];
-
-        $user->capital_amount()->create($data);
+        ]);
 
         return redirect()->route('capital-amount.show')
             ->with('success', 'Capital amount updated successfully');
     }
 
-    public function apiSetCapitalAmount(Request $request)
-    {
-        $validated = $request->validate([
-            'capital' => 'required|numeric|min:0',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
-        $data = [
-            'capital' => $validated['capital'],
-            'description' => $validated['description'] ?? null,
-        ];
-
-        $this->currentUser()->capital_amount()->create($data);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Capital amount updated successfully'
-        ]);
-    }
-
     public function showCapitalAmount()
     {
-        $user = $this->currentUser();
-
-        $capitalAmounts = $user
+        $capitalAmounts = $this->currentUser()
             ->capital_amount()
             ->latest()
             ->get();
@@ -578,18 +165,25 @@ class TradeController extends Controller
         return view('CapitalAmount.show', compact('capitalAmounts', 'currentCapital', 'totalCapital'));
     }
 
-    public function apiShowCapitalAmount()
+    private function validateTrade(Request $request): array
     {
-        $capitalAmounts = $this->currentUser()
-            ->capital_amount()
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $capitalAmounts
+        return $request->validate([
+            'type' => 'required|in:buy,sell',
+            'amount_usdt' => 'required|numeric',
+            'bank_fee' => 'nullable|numeric',
+            'total_lkr' => 'required|numeric',
+            'fee' => 'nullable|numeric',
         ]);
     }
 
+    private function currentUser(): User
+    {
+        $user = Auth::user();
 
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        return $user;
+    }
 }
