@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use Nette\Utils\Type;
 
+use App\Models\WithdrawHistory;
+
 class TradeService
 {
     public function applyTradeToCurrentStatus(User $user, $trade): void
@@ -182,4 +184,31 @@ class TradeService
             ]);
         }
     }
+
+    public function withdrawProfit(User $user, float $amount, ?string $description = null): void 
+    {
+
+        $currentProfite = $user->currentprofite()->latest()->first();
+
+        if (! $currentProfite) {
+            return;
+        }
+
+        if ($amount > $currentProfite->profite) {
+            throw new \Exception('Withdrawal amount exceeds available profit.');
+        }
+
+        $currentProfite->update([
+            'profite' => round(
+                $currentProfite->profite - $amount,
+                2
+            ),
+        ]);
+
+        $user->withdrawHistories()->create([
+            'amount' => $amount,
+            'description' => $description,
+        ]);
+    }
+
 }

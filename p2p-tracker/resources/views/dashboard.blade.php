@@ -160,9 +160,22 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="flex flex-col sm:flex-row sm:items-left sm:justify-between gap-4">
                         <div>
-                            <h4>Total Profit: </h4>
-                            <input type="text" value="{{ $total_profit ?? 0 }}" readonly class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <h4>Available Profit: </h4>
+                            <input type="text" value="{{ $currentProfit ?? 0 }}" readonly class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <h5 class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('This is the profit you can withdraw.') }}
+                            </h5>
+                            <a href="{{ route('profit.withdraw.form') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-indigo-500 focus:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-700 dark:focus:ring-offset-gray-800">
+                            {{ __('Withdraw Profit') }}
+                            </a>
                         </div>
+                        <dive>
+                            <h3>Total Profit: </h3>
+                            <input type="text" value="{{ $total_profit ?? 0 }}" readonly class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <h5 class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('This is the total profit you have made.') }}
+                            </h5>
+                        </dive>
 
                     </div>
 

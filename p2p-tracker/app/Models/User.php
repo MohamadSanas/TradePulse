@@ -9,6 +9,8 @@ use App\Models\Trade;
 use App\Models\EffectiveBuyPrice;
 use App\Models\CurrentProfite;
 use App\Models\CapitalAmount;
+use App\Models\WithdrawHistory;
+
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
@@ -53,6 +55,11 @@ class User extends Authenticatable
     public function capital_amount(): HasMany
     {
         return $this->hasMany(CapitalAmount::class);
+    }
+
+    public function withdrawHistories()
+    {
+        return $this->hasMany(WithdrawHistory::class);
     }
 
     protected static function booted()

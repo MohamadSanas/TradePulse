@@ -132,7 +132,7 @@
                                         {{ $capitalAmount->updated_at->format('M d, Y h:i A') }}
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
-                                        <a href="{{ route('capital-amount.update', $capitalAmount->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                        <a href="{{ route('capital-amount.edit', $capitalAmount->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
                                             {{ __('Edit') }}
                                         </a>
                                         <form action="{{ route('capital-amount.destroy', $capitalAmount->id) }}" method="POST" class="inline-block ml-2">

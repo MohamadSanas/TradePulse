@@ -24,11 +24,25 @@ Route::middleware('auth')->group(function () {
         ->name('capital-amount.set');
 
     Route::resource('trades', TradeController::class);
-    Route::resource('capital-amount', TradeController::class)->only(['show', 'destroy']);
+    //Route::resource('capital-amount', TradeController::class)->only(['show', 'destroy']);
     Route::post('/capital-amount/withdraw', [TradeController::class, 'withdraw'])
         ->name('capital-amount.withdraw');
     Route::put('/capital-amount/{capitalAmount}', [TradeController::class, 'updateCapitalAmount'])
         ->name('capital-amount.update');
+    Route::delete('/capital-amount/{capitalAmount}', [TradeController::class, 'removeCapitalAmount'])
+        ->name('capital-amount.destroy');
+
+    Route::get('/capital-amount/{capitalAmount}/edit', [TradeController::class, 'editCapitalAmount'])
+    ->name('capital-amount.edit');
+
+    Route::put('/capital-amount/{capitalAmount}', [TradeController::class, 'updateCapitalAmount'])
+        ->name('capital-amount.update');
+
+    Route::put('profit/withdraw', [TradeController::class, 'withdrawProfit'])
+        ->name('profit.withdraw');
+
+    Route::get('/profit/withdraw', [TradeController::class, 'showWithdrawProfitForm'])
+    ->name('profit.withdraw.form');
 
 });
 

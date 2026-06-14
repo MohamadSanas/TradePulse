@@ -122,11 +122,14 @@ class TradeController extends Controller
             ->get();
 
         $currentStatus = $current_status->first();
-        $total_profit = $user->currentprofite()->latest()->value('profite') ?? 0;
+        $totalWithdrawn = $user->withdrawHistories()->sum('amount');
+        $withdrawableProfit = $user->currentprofite()->latest()->value('profite') ?? 0;
+        $total_profit = ($user->currentprofite()->latest()->value('profite') ?? 0) + $totalWithdrawn;
         $capitalAmounts = $user->capital_amount()->latest()->get();
         $currentCapital = $capitalAmounts->first();
         $totalCapital = $capitalAmounts->sum('capital');
         $totalAssets = $totalCapital + $total_profit;
+        $currentProfit = $user->currentprofite()->latest()->value('profite') ?? 0;
 
         return view('dashboard', compact(
             'current_status',
@@ -134,7 +137,8 @@ class TradeController extends Controller
             'total_profit',
             'currentCapital',
             'totalCapital',
-            'totalAssets'
+            'totalAssets',
+            'currentProfit'
         ));
 
     }
@@ -189,4 +193,67 @@ class TradeController extends Controller
 
         return $user;
     }
+
+    public function removeCapitalAmount($id)
+    {
+        $user = $this->currentUser();
+        $capitalAmount = $user->capital_amount()->findOrFail($id);
+
+        $capitalAmount->delete();
+
+        return redirect()->route('capital-amount.index')
+            ->with('success', 'Capital amount deleted successfully');
+    }
+
+    public function editCapitalAmount($id)
+    {
+        $capitalAmount = $this->currentUser()
+            ->capital_amount()
+            ->findOrFail($id);
+
+        return view('CapitalAmount.edit', compact('capitalAmount'));
+    }
+
+    public function updateCapitalAmount(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'capital' => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $user = $this->currentUser();
+        $capitalAmount = $user->capital_amount()->findOrFail($id);
+
+        $capitalAmount->update([
+            'capital' => $validated['capital'],
+            'description' => $validated['description'] ?? null,
+        ]);
+
+        return redirect()->route('capital-amount.index')
+            ->with('success', 'Capital amount updated successfully');
+    }
+
+    public function withdrawProfit(Request $request)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $this->tradeService->withdrawProfit(
+            $this->currentUser(),
+            $validated['amount'],
+            $validated['description'] ?? null
+        );
+
+        return redirect()->back()
+            ->with('success', 'Profit withdrawn successfully');
+    }
+
+    public function showWithdrawProfitForm()
+    {
+        return view('Profit.withdraw');
+    }
+
+    
 }
