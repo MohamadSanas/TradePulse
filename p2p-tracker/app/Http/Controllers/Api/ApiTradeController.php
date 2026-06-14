@@ -233,4 +233,19 @@ class ApiTradeController extends Controller
 
         return $user;
     }
+
+    private function apiTotalAssets()
+    {
+        $currentCapital = $this->currentUser()
+            ->capital_amount()
+            ->latest()
+            ->first();
+
+        $currentProfite = $this->currentUser()
+            ->currentprofite()
+            ->latest()
+            ->first();
+
+        return round(($currentCapital?->capital ?? 0) + ($currentProfite?->profite ?? 0), 2);
+    }
 }

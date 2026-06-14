@@ -19,11 +19,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/trades/update-average-buy-price', [TradeController::class, 'updateAverageBuyPrice'])
         ->name('trades.updateAverageBuyPrice');
     Route::get('/capital-amount', [TradeController::class, 'showCapitalAmount'])
-        ->name('capital-amount.show');
+        ->name('capital-amount.index');
     Route::post('/capital-amount', [TradeController::class, 'setCapitalAmount'])
         ->name('capital-amount.set');
 
     Route::resource('trades', TradeController::class);
+    Route::resource('capital-amount', TradeController::class)->only(['show', 'destroy']);
+    Route::post('/capital-amount/withdraw', [TradeController::class, 'withdraw'])
+        ->name('capital-amount.withdraw');
+    Route::put('/capital-amount/{capitalAmount}', [TradeController::class, 'updateCapitalAmount'])
+        ->name('capital-amount.update');
+
 });
 
 require __DIR__.'/auth.php';

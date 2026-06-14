@@ -122,18 +122,21 @@ class TradeController extends Controller
             ->get();
 
         $currentStatus = $current_status->first();
-        $today_profit = $user->currentprofite()->latest()->value('profite') ?? 0;
+        $total_profit = $user->currentprofite()->latest()->value('profite') ?? 0;
         $capitalAmounts = $user->capital_amount()->latest()->get();
         $currentCapital = $capitalAmounts->first();
         $totalCapital = $capitalAmounts->sum('capital');
+        $totalAssets = $totalCapital + $total_profit;
 
         return view('dashboard', compact(
             'current_status',
             'currentStatus',
-            'today_profit',
+            'total_profit',
             'currentCapital',
-            'totalCapital'
+            'totalCapital',
+            'totalAssets'
         ));
+
     }
 
     public function setCapitalAmount(Request $request)
@@ -148,7 +151,7 @@ class TradeController extends Controller
             'description' => $validated['description'] ?? null,
         ]);
 
-        return redirect()->route('capital-amount.show')
+        return redirect()->route('capital-amount.index')
             ->with('success', 'Capital amount updated successfully');
     }
 

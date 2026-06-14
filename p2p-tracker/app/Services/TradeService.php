@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\User;
+use Nette\Utils\Type;
 
 class TradeService
 {
@@ -136,5 +137,49 @@ class TradeService
     public function setCapitalAmount(User $user, array $data): void
     {
         $user->capital_amount()->create($data);
+    }
+
+    public function Withdraw(User $user , float $amount): void{
+        $currentCapital = $user->capital_amount()->latest()->first();
+
+        if (! $currentCapital) {
+            return;
+        }
+
+        $newCapitalAmount = max(0, $currentCapital->amount - $amount);
+
+        $currentCapital->update([
+            'amount' => round($newCapitalAmount, 2),
+        ]);
+
+    }
+
+    public function totalAsset(User $user): float
+    {
+        $currentCapital = $user->totalcapital()->latest()->first();
+        $currentProfite = $user->currentprofite()->latest()->first();
+
+        return round(($currentCapital?->capital ?? 0) + ($currentProfite?->profite ?? 0), 2);
+    }
+
+    public function removeCapitalAmount(User $user, int $capitalAmountId): void
+    {
+        $capitalAmount = $user->capital_amount()->find($capitalAmountId);
+
+        if ($capitalAmount) {
+            $capitalAmount->delete();
+        }
+    }
+
+    public function updateCapitalAmount(User $user, int $capitalAmountId, float $newCapital, ?string $description = null): void
+    {
+        $capitalAmount = $user->capital_amount()->find($capitalAmountId);
+
+        if ($capitalAmount) {
+            $capitalAmount->update([
+                'capital' => round($newCapital, 2),
+                'description' => $description,
+            ]);
+        }
     }
 }

@@ -115,6 +115,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Capital') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Description') }}</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Updated') }}</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 bg-white dark:divide-gray-700 dark:bg-gray-800">
@@ -126,8 +127,21 @@
                                     <td class="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                                         {{ $capitalAmount->description ?: __('No description') }}
                                     </td>
+                                    
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                                         {{ $capitalAmount->updated_at->format('M d, Y h:i A') }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                                        <a href="{{ route('capital-amount.update', $capitalAmount->id) }}" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                            {{ __('Edit') }}
+                                        </a>
+                                        <form action="{{ route('capital-amount.destroy', $capitalAmount->id) }}" method="POST" class="inline-block ml-2">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                                {{ __('Delete') }}
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             @empty

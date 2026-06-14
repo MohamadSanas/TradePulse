@@ -131,21 +131,21 @@
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <p class="text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                                {{ __('Total Capital') }}
+                                {{ __('Total Assets') }}
                             </p>
                             <p class="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-                                LKR {{ number_format((float) ($totalCapital ?? 0), 2) }}
+                                LKR {{ number_format((float) ($totalAssets ?? 0), 2) }}
                             </p>
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 @if ($currentCapital)
-                                    {{ __('Latest entry') }}: LKR {{ number_format((float) $currentCapital->capital, 2) }}
+                                    {{ __('Current Capital') }}: LKR {{ number_format((float) $totalCapital, 2) }}
                                 @else
                                     {{ __('No capital amount has been saved yet.') }}
                                 @endif
                             </p>
                         </div>
 
-                        <a href="{{ route('capital-amount.show') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-indigo-500 focus:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-700 dark:focus:ring-offset-gray-800">
+                        <a href="{{ route('capital-amount.index') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:bg-indigo-500 focus:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-700 dark:focus:ring-offset-gray-800">
                             {{ __('Manage Capital') }}
                         </a>
                     </div>
@@ -160,8 +160,8 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <div class="flex flex-col sm:flex-row sm:items-left sm:justify-between gap-4">
                         <div>
-                            <h4>Current profit: </h4>
-                            <input type="text" value="{{ $today_profit ?? 0 }}" readonly class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <h4>Total Profit: </h4>
+                            <input type="text" value="{{ $total_profit ?? 0 }}" readonly class="mt-1 block w-full rounded-md border-gray-300 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                         </div>
 
                     </div>
