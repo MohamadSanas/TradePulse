@@ -122,14 +122,14 @@ class TradeController extends Controller
             ->get();
 
         $currentStatus = $current_status->first();
-        $totalWithdrawn = $user->withdrawHistories()->sum('amount');
-        $withdrawableProfit = $user->currentprofite()->latest()->value('profite') ?? 0;
-        $total_profit = ($user->currentprofite()->latest()->value('profite') ?? 0) + $totalWithdrawn;
+        $totalWithdrawn = (float) $user->withdrawHistories()->sum('amount');
+        $currentProfit = (float) ($user->currentprofite()->latest()->value('profite') ?? 0);
+        $withdrawableProfit = $currentProfit;
+        $total_profit = $currentProfit + $totalWithdrawn;
         $capitalAmounts = $user->capital_amount()->latest()->get();
         $currentCapital = $capitalAmounts->first();
         $totalCapital = $capitalAmounts->sum('capital');
         $totalAssets = $totalCapital + $total_profit;
-        $currentProfit = $user->currentprofite()->latest()->value('profite') ?? 0;
 
         return view('dashboard', compact(
             'current_status',

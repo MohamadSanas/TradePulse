@@ -14,6 +14,10 @@ class CapitalAmount extends Model
         'description',
     ];
 
+    protected $casts = [
+        'capital' => 'float',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

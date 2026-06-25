@@ -14,12 +14,18 @@ class Trade extends Model
         'fee'
     ];
 
+    protected $casts = [
+        'amount_usdt' => 'float',
+        'bank_fee' => 'float',
+        'total_lkr' => 'float',
+        'fee' => 'float',
+    ];
+
     public function user()
 {
     return $this->belongsTo(User::class);
 }
 }
-
 
 
 

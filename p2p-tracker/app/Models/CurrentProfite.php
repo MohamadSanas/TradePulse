@@ -13,6 +13,10 @@ class CurrentProfite extends Model
         'profite',
     ];
 
+    protected $casts = [
+        'profite' => 'float',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
