@@ -1,0 +1,12 @@
+.git
+.agents
+.codex
+README.md
+
+p2p-tracker/.env
+p2p-tracker/node_modules
+p2p-tracker/vendor
+p2p-tracker/storage/logs
+p2p-tracker/storage/framework/cache
+p2p-tracker/storage/framework/sessions
+p2p-tracker/storage/framework/views
