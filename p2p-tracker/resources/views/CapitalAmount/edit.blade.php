@@ -1,40 +1,31 @@
 <x-app-layout>
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-3xl space-y-6">
+        <section class="tp-panel rounded-2xl p-6 sm:p-8">
+            <span class="tp-label text-xs uppercase tracking-[0.2em] text-[#849495]">Capital Maintenance</span>
+            <h1 class="tp-headline mt-2 text-4xl font-bold tracking-[-0.04em] text-white">Edit Capital Amount</h1>
+            <p class="mt-3 text-base text-[#b9cacb]">Refine the capital source details without losing the surrounding TradePulse dashboard styling.</p>
+        </section>
 
-            <h2 class="text-2xl font-bold mb-6">
-                Edit Capital Amount
-            </h2>
-
-            <form method="POST"
-                  action="{{ route('capital-amount.update', $capitalAmount->id) }}">
+        <section class="tp-panel rounded-2xl p-6">
+            <form method="POST" action="{{ route('capital-amount.update', $capitalAmount->id) }}" class="space-y-6">
                 @csrf
                 @method('PUT')
 
-                <div class="mb-4">
-                    <label>Capital</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="capital"
-                        value="{{ $capitalAmount->capital }}"
-                        class="border rounded w-full p-2">
+                <div>
+                    <label for="capital" class="tp-label block text-xs text-[#b9cacb]">Capital</label>
+                    <input id="capital" type="number" step="0.01" name="capital" value="{{ old('capital', $capitalAmount->capital) }}" class="tp-form-input mt-2">
                 </div>
 
-                <div class="mb-4">
-                    <label>Description</label>
-                    <textarea
-                        name="description"
-                        class="border rounded w-full p-2">{{ $capitalAmount->description }}</textarea>
+                <div>
+                    <label for="description" class="tp-label block text-xs text-[#b9cacb]">Description</label>
+                    <textarea id="description" name="description" rows="4" class="tp-form-textarea mt-2">{{ old('description', $capitalAmount->description) }}</textarea>
                 </div>
 
-                <button
-                    type="submit"
-                    class="bg-blue-600 text-white px-4 py-2 rounded">
-                    Update
-                </button>
-
+                <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <a href="{{ route('capital-amount.index') }}" class="tp-btn-secondary">Cancel</a>
+                    <button type="submit" class="tp-btn-primary">Update</button>
+                </div>
             </form>
-        </div>
+        </section>
     </div>
 </x-app-layout>

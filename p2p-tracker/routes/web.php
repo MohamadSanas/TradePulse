@@ -2,11 +2,17 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SupportContactController;
 use App\Http\Controllers\TradeController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
+
+Route::view('/support/contact', 'support.contact')
+    ->name('support.contact');
+Route::post('/support/contact', [SupportContactController::class, 'store'])
+    ->name('support.contact.submit');
 
 Route::get('/dashboard', [TradeController::class, 'viewUpdateAverageBuyPrice'])
     ->middleware(['auth', 'verified'])

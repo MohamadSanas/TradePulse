@@ -244,7 +244,7 @@
             <div class="flex flex-wrap items-center justify-center gap-6">
                 <span class="tp-label text-xs text-[#849495]">Privacy Policy</span>
                 <span class="tp-label text-xs text-[#849495]">Terms of Service</span>
-                <span class="tp-label text-xs text-[#849495]">Contact Support</span>
+                <a href="{{ route('support.contact') }}" class="tp-label text-xs text-[#849495] transition hover:text-[#00f0ff]">Contact Support</a>
             </div>
         </footer>
     </div>

@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'support' => [
+        'contact_email' => env('SUPPORT_CONTACT_EMAIL', 'sanasweb1@gmail.com'),
+    ],
+
 ];
