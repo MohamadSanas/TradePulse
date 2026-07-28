@@ -23,6 +23,11 @@ WORKDIR /app
 # Copy only the Laravel app that lives in the nested project directory.
 COPY p2p-tracker/ .
 
+# Create Laravel storage directories required at runtime
+RUN mkdir -p storage/framework/{views,cache/data,sessions} \
+    && chmod -R 775 storage \
+    && chown -R www-data:www-data storage
+
 # Install dependencies and build frontend assets.
 RUN composer install --no-dev --optimize-autoloader
 RUN npm ci
