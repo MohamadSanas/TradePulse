@@ -29,22 +29,6 @@ A clean and scalable Laravel application for managing and tracking P2P USDT trad
 
 ---
 
-# 🗄️ Database Structure
-
-## trades table
-
-| Column       | Type               |
-| -------------| ------------------ |
-| id           | bigint             |
-| type         | enum (buy/sell)    |
-| amount_usdt  | decimal            |
-| bank_fee     | decimal            |
-| total_lkr    | decimal            |
-| fee          | decimal (nullable) |
-| timestamps   | timestamps         |
-
----
-
 # ⚙️ Installation
 
 ## Clone Repository
@@ -81,22 +65,10 @@ php artisan key:generate
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_DATABASE=p2p_tracker
+DB_DATABASE=
 DB_USERNAME=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=
 ```
-
-### MySQL
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=p2p_tracker
-DB_USERNAME=root
-DB_PASSWORD=your_password
-```
-
 ---
 
 ## Run Migrations
@@ -111,12 +83,6 @@ php artisan migrate
 
 ```bash
 php artisan serve
-```
-
-Application runs at:
-
-```text
-http://127.0.0.1:8000
 ```
 
 ---
@@ -190,8 +156,9 @@ Recommended screenshots:
 | CRUD System | ✅ Completed |
 | REST API | ✅ Completed |
 | API Testing | ✅ Completed |
-| Portfolio Engine | 🚧 In Progress |
-| Dashboard Analytics | 🚧 Planned |
+| Portfolio Engine | ✅ Completed |
+| Dashboard Analytics | ✅ Completed |
+| AI Features | 🚧 In Progress |
 ---
 
 # 📜 License
