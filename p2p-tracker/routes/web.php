@@ -39,16 +39,13 @@ Route::middleware('auth')->group(function () {
         ->name('capital-amount.destroy');
 
     Route::get('/capital-amount/{capitalAmount}/edit', [TradeController::class, 'editCapitalAmount'])
-    ->name('capital-amount.edit');
-
-    Route::put('/capital-amount/{capitalAmount}', [TradeController::class, 'updateCapitalAmount'])
-        ->name('capital-amount.update');
+        ->name('capital-amount.edit');
 
     Route::put('profit/withdraw', [TradeController::class, 'withdrawProfit'])
         ->name('profit.withdraw');
 
     Route::get('/profit/withdraw', [TradeController::class, 'showWithdrawProfitForm'])
-    ->name('profit.withdraw.form');
+        ->name('profit.withdraw.form');
 
 });
 

@@ -6,6 +6,18 @@
             <p class="mt-3 text-base text-[#b9cacb]">Move realized profit out of the active ledger while keeping the same dashboard command style.</p>
         </section>
 
+        @if (session('success'))
+            <div class="rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="rounded-xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-300">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <section class="tp-panel rounded-2xl p-6">
             <form method="POST" action="{{ route('profit.withdraw') }}" class="space-y-6">
                 @csrf

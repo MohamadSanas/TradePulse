@@ -114,6 +114,8 @@ class TradeController extends Controller
 
     public function viewUpdateAverageBuyPrice()
     {
+        set_time_limit(120); // Neon serverless DB may need time to wake from suspend
+
         $user = $this->currentUser();
 
         $current_status = $user
@@ -235,16 +237,23 @@ class TradeController extends Controller
 
     public function withdrawProfit(Request $request)
     {
+        set_time_limit(120); // Neon serverless DB may need time to wake from suspend
+
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'description' => 'nullable|string|max:255',
         ]);
 
-        $this->tradeService->withdrawProfit(
-            $this->currentUser(),
-            $validated['amount'],
-            $validated['description'] ?? null
-        );
+        try {
+            $this->tradeService->withdrawProfit(
+                $this->currentUser(),
+                $validated['amount'],
+                $validated['description'] ?? null
+            );
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
 
         return redirect()->back()
             ->with('success', 'Profit withdrawn successfully');

@@ -158,7 +158,7 @@ class TradeService
 
     public function totalAsset(User $user): float
     {
-        $currentCapital = $user->totalcapital()->latest()->first();
+        $currentCapital = $user->capital_amount()->latest()->first();
         $currentProfite = $user->currentprofite()->latest()->first();
 
         return round(($currentCapital?->capital ?? 0) + ($currentProfite?->profite ?? 0), 2);
